@@ -11,7 +11,7 @@
 		73232DE52A03C79800F4901F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73232DE42A03C79800F4901F /* ContentView.swift */; };
 		73232DE72A03C79A00F4901F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 73232DE62A03C79A00F4901F /* Assets.xcassets */; };
 		73232DEA2A03C79A00F4901F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 73232DE92A03C79A00F4901F /* Preview Assets.xcassets */; };
-		73E632162A0503410008DBA9 /* SwitfUIMap in Frameworks */ = {isa = PBXBuildFile; productRef = 73E632152A0503410008DBA9 /* SwitfUIMap */; };
+		73C67E7F2A07113900214DCF /* SwitfUIMap in Frameworks */ = {isa = PBXBuildFile; productRef = 73C67E7E2A07113900214DCF /* SwitfUIMap */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,7 +20,7 @@
 		73232DE42A03C79800F4901F /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		73232DE62A03C79A00F4901F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		73232DE92A03C79A00F4901F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		73E632142A0502D70008DBA9 /* SwitfUIMap */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = SwitfUIMap; path = ..; sourceTree = "<group>"; };
+		73C67E7D2A07113100214DCF /* SwiftUIMap */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = SwiftUIMap; path = ..; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -28,7 +28,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				73E632162A0503410008DBA9 /* SwitfUIMap in Frameworks */,
+				73C67E7F2A07113900214DCF /* SwitfUIMap in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -38,7 +38,7 @@
 		73232DD62A03C79800F4901F = {
 			isa = PBXGroup;
 			children = (
-				73E632142A0502D70008DBA9 /* SwitfUIMap */,
+				73C67E7D2A07113100214DCF /* SwiftUIMap */,
 				73232DE12A03C79800F4901F /* SwiftUIMap Example */,
 				73232DE02A03C79800F4901F /* Products */,
 				73232DF42A03CE6A00F4901F /* Frameworks */,
@@ -96,7 +96,7 @@
 			);
 			name = "SwiftUIMap Example";
 			packageProductDependencies = (
-				73E632152A0503410008DBA9 /* SwitfUIMap */,
+				73C67E7E2A07113900214DCF /* SwitfUIMap */,
 			);
 			productName = "SwiftUIMap Example";
 			productReference = 73232DDF2A03C79800F4901F /* SwiftUIMap Example.app */;
@@ -358,7 +358,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		73E632152A0503410008DBA9 /* SwitfUIMap */ = {
+		73C67E7E2A07113900214DCF /* SwitfUIMap */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SwitfUIMap;
 		};

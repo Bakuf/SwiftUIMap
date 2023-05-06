@@ -7,12 +7,12 @@
 
 import UIKit
 import MapKit
+import SwiftUI
 
 public class MapAnnotation: NSObject, MKAnnotation {
     
     public var locationInfo : MapLocation {
         didSet {
-            title = locationInfo.name
             coordinate = locationInfo.coordinates
         }
     }
@@ -22,9 +22,6 @@ public class MapAnnotation: NSObject, MKAnnotation {
             locationInfo.coordinates = coordinate
         }
     }
-    
-    public var title: String?
-    var color: UIColor = .white
     
     init(location:MapLocation) {
         locationInfo = location

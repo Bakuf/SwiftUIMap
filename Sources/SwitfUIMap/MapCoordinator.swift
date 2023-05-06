@@ -27,5 +27,16 @@ final public class MapCoordinator: ObservableObject {
     @Published public var tapLocation : MapLocation = .none
     
     @Published public var tileColor : UIColor = .clear
-}
     
+    @Published public var visibleRegion: MKCoordinateRegion = .init()
+    
+    weak var mapView: MapView?
+}
+ 
+public extension MapCoordinator {
+    
+    func setCenterCoordinate(coordinate: CLLocationCoordinate2D, zoomLevel: Int, animated: Bool = true) {
+        mapView?.setCenterCoordinate(coordinate: coordinate, zoomLevel: zoomLevel, animated: animated)
+    }
+    
+}

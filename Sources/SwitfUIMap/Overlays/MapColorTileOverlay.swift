@@ -10,7 +10,7 @@ import MapKit
 class ColorOverlayRenderer: MKOverlayRenderer {
     override func draw(_ mapRect: MKMapRect, zoomScale: MKZoomScale, in context: CGContext) {
         let drawRect = self.rect(for: mapRect)
-        if let colorOverlay = overlay as? ColorTileOverlay {
+        if let colorOverlay = overlay as? MapColorTileOverlay {
             let rgba = colorOverlay.color.rgba
             context.setFillColor(red: rgba.red,
                                  green: rgba.green,
@@ -23,10 +23,11 @@ class ColorOverlayRenderer: MKOverlayRenderer {
     }
 }
 
-class ColorTileOverlay : MKTileOverlay, MapOverlay {
+class MapColorTileOverlay : MKTileOverlay, MapOverlay {
     var id: String { UUID().uuidString }
     var type: MapOverlayType { .colorTile }
     let color: UIColor
+    let level : MKOverlayLevel = .aboveLabels
     
     internal init(color: UIColor) {
         self.color = color
@@ -35,14 +36,6 @@ class ColorTileOverlay : MKTileOverlay, MapOverlay {
     
 }
 
-extension UIColor {
-    var rgba: (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
-        var red: CGFloat = 0
-        var green: CGFloat = 0
-        var blue: CGFloat = 0
-        var alpha: CGFloat = 0
-        getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-
-        return (red, green, blue, alpha)
-    }
+extension MapColorTileOverlay: MapOverlayRenderProvider {
+    var renderer : MKOverlayRenderer { ColorOverlayRenderer(overlay: self) }
 }

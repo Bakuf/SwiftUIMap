@@ -18,6 +18,7 @@ public class MapView: MKMapView {
         super.init(frame: .zero)
         subscribe(to: coordinator)
         self.coordinator = coordinator
+        coordinator.mapView = self
         delegate = self
     }
     
@@ -25,18 +26,18 @@ public class MapView: MKMapView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    public var tileColor : UIColor = .clear {
+    var tileColor : UIColor = .clear {
         didSet {
-            removeAllOverlays(of: ColorTileOverlay.classForCoder())
+            removeAllOverlays(of: MapColorTileOverlay.classForCoder())
             if tileColor != .clear {
-                let tiles = ColorTileOverlay(color: tileColor)
+                let tiles = MapColorTileOverlay(color: tileColor)
                 tiles.canReplaceMapContent = true
                 addOverlay(tiles, level: .aboveLabels)
             }
         }
     }
     
-    public var zoomLevel: Int {
+    var zoomLevel: Int {
         get {
             return calculateZoomLevel()
         }
@@ -45,13 +46,14 @@ public class MapView: MKMapView {
         }
     }
     
-    public var reportTapLocation = false {
+    var reportTapLocation = false {
         didSet {
             if reportTapLocation {
                 let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(mapTapped(recognizer:)))
                 tapRecognizer.numberOfTapsRequired = 1;
                 self.addGestureRecognizer(tapRecognizer)
                 singleTapRecognizer = tapRecognizer
+                tapRecognizer.delegate = self
             }else{
                 if let singleTap = singleTapRecognizer {
                     self.removeGestureRecognizer(singleTap)
@@ -83,6 +85,7 @@ extension MapView {
     }
 }
 
+//MARK: Utils
 extension MapView {
     private func calculateZoomLevel() -> Int {
         let lvl = log2(360 * (Double(UIScreen.main.bounds.width/256) / self.region.span.longitudeDelta)) + 1
@@ -93,7 +96,7 @@ extension MapView {
         }
     }
     
-    private func setCenterCoordinate(coordinate: CLLocationCoordinate2D, zoomLevel: Int, animated: Bool) {
+    func setCenterCoordinate(coordinate: CLLocationCoordinate2D, zoomLevel: Int, animated: Bool) {
         let lvl = zoomLevel == 0 ? 1 : zoomLevel
         let span = MKCoordinateSpan(latitudeDelta: 0, longitudeDelta: 360 / pow(2, Double(lvl)) * Double(UIScreen.main.bounds.width) / 256)
         setRegion(MKCoordinateRegion(center: coordinate, span: span), animated: animated)
@@ -127,7 +130,7 @@ extension MapView {
         let diff = Array(overlayDictionary.keys).difference(from: currentOverlays)
         diff.forEach { id in
             if let overlay = overlayDictionary[id] as? MKOverlay {
-                addOverlay(overlay, level: .aboveLabels)
+                addOverlay(overlay, level: overlayDictionary[id]?.level ?? .aboveLabels)
             }else{
                 removeOverlay(with: id)
             }
@@ -136,16 +139,17 @@ extension MapView {
 
 }
 
+//MARK: Annotations and Overlays
 extension MapView {
-    public var annotationIds: [String] {
+    var annotationIds: [String] {
         annotations.compactMap({ $0 as? MapAnnotation }).map({$0.locationInfo.identifier})
     }
     
-    public var overlayIds: [String] {
+    var overlayIds: [String] {
         overlays.compactMap({ $0 as? MapOverlay }).map({$0.id})
     }
     
-    public func removeAnnotation(with identifier: String) {
+    func removeAnnotation(with identifier: String) {
         annotations.compactMap({ $0 as? MapAnnotation })
             .filter({ $0.locationInfo.identifier == identifier })
             .forEach { ann in
@@ -153,7 +157,7 @@ extension MapView {
             }
     }
     
-    public func removeOverlay(with identifier: String) {
+    func removeOverlay(with identifier: String) {
         overlays.compactMap({ $0 as? MapOverlay })
             .filter({ $0.id == identifier })
             .forEach { overlay in
@@ -163,26 +167,21 @@ extension MapView {
             }
     }
     
-    public func removeAllOverlays(of classType: AnyClass) {
+    func removeAllOverlays(of classType: AnyClass) {
         removeOverlays(overlays.filter({ $0.isKind(of: classType) }))
     }
     
-    public func removeAllAnnotations(of classType: AnyClass) {
+    func removeAllAnnotations(of classType: AnyClass) {
         removeAnnotations(annotations.filter({ $0.isKind(of: classType) }))
     }
 }
 
-extension Array where Element: Hashable {
-    func difference(from other: [Element]) -> [Element] {
-        let thisSet = Set(self)
-        let otherSet = Set(other)
-        return Array(thisSet.symmetricDifference(otherSet))
-    }
-}
-
+//MARK: MKMapViewDelegate
 extension MapView : MKMapViewDelegate {
     public func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-        
+        DispatchQueue.main.async { [weak self] in
+            self?.coordinator?.visibleRegion = mapView.region
+        }
     }
     
     public func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
@@ -199,24 +198,26 @@ extension MapView : MKMapViewDelegate {
     }
     
     public func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
-        guard let mapOverlay = overlay as? MapOverlay else { return MKOverlayRenderer(overlay: overlay) }
-        switch mapOverlay.type {
-        case .colorTile:
-            return ColorOverlayRenderer(overlay: overlay)
-        case .imageOverlay:
-            return ImageOverlayRenderer(overlay: overlay)
-        }
+        guard let renderProvider = overlay as? MapOverlayRenderProvider else { return MKOverlayRenderer(overlay: overlay) }
+        return renderProvider.renderer
     }
 }
 
-extension MapView {
+//MARK: Touch Gestures
+extension MapView : UIGestureRecognizerDelegate {
     @objc private func mapTapped(recognizer: UIGestureRecognizer){
         let tapPoint = recognizer.location(in: self)
         let tapLocation = self.convert(tapPoint, toCoordinateFrom: self)
+        
+        
         
         let locInfo = MapLocation(identifier: UUID().uuidString,
                                   coordinates: tapLocation)
         
         coordinator?.tapLocation = locInfo
     }
+    
+//    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+//        return false
+//    }
 }

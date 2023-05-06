@@ -22,12 +22,23 @@ struct ContentView: View {
                 Button("Add Overlay") {
                     if let image = UIImage(named: "usaMap") {
                         mapCoordinator.overlays.append(
-                            ImageOverlay(location: .init(coordinates: mapCoordinator.tapLocation.coordinates), image: image)
+                            MapImageOverlay(location: .init(coordinates: mapCoordinator.tapLocation.coordinates), image: image)
                         )
                     }
                 }
                 Button("Clear Overlay") {
                     mapCoordinator.overlays = []
+                }
+                Button("Draw Lines") {
+                    if mapCoordinator.locations.count > 1 {
+                        mapCoordinator.overlays = []
+                        let lineCoords = mapCoordinator.locations.map { loc in
+                            loc.coordinates
+                        }
+                        mapCoordinator.overlays.append(
+                            MapLineOverlay(coordinates: lineCoords)
+                        )
+                    }
                 }
             }
             HStack {
@@ -54,7 +65,8 @@ struct ContentView: View {
                 Text("zoom: \(Int(mapCoordinator.zoomLevel))")
                 Slider(value: $mapCoordinator.zoomLevel, in: 0...20)
             }
-            Text("tap coords : \(mapCoordinator.tapLocation.coordinates.longitude) - \(mapCoordinator.tapLocation.coordinates.latitude)")
+            Text("tap coords : \(mapCoordinator.tapLocation.coordinates.latitude) - \(mapCoordinator.tapLocation.coordinates.longitude)")
+            Text("center coords : \(mapCoordinator.visibleRegion.center.latitude) - \(mapCoordinator.visibleRegion.center.longitude)")
             ZStack {
                 SwitfUIMap(coordinator: mapCoordinator)
             }
@@ -69,13 +81,26 @@ struct ContentView: View {
 }
 
 struct TestAnnotationView : SwiftUIMapAnnotationView {
+    
+    @ObservedObject var annCoordinator: AnnotationCoordinator = .init()
+    
     var body: some View {
         ZStack{
             Circle()
-                .fill(.blue)
+                .fill(annCoordinator.isSelected ? .green : .blue)
                 .opacity(0.5)
+                .onTapGesture {
+                    print("circle ann was tapped!")
+                    annCoordinator.isSelected.toggle()
+                }
         }
-        .frame(width: 100, height: 100)
+        .onChange(of: annCoordinator.isSelected) { newValue in
+            var frame = CGRect(x: 0, y: 0, width: 100, height: 100)
+            if newValue {
+                frame = CGRect(x: 0, y: 0, width: 300, height: 300)
+            }
+            annCoordinator.frame = frame
+        }
     }
 }
 

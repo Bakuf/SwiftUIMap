@@ -10,9 +10,17 @@ import MapKit
 public enum MapOverlayType {
     case colorTile
     case imageOverlay
+    case line
+    case circle
+    case polygon
 }
 
 public protocol MapOverlay {
     var id: String { get }
     var type : MapOverlayType { get }
+    var level : MKOverlayLevel { get }
+}
+
+protocol MapOverlayRenderProvider {
+    var renderer : MKOverlayRenderer { get }
 }
