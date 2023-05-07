@@ -1,5 +1,5 @@
 //
-//  MapOveray.swift
+//  MapOverlay.swift
 //  
 //
 //  Created by Rodrigo Galvez on 04/05/23.
@@ -9,6 +9,7 @@ import MapKit
 
 public enum MapOverlayType {
     case colorTile
+    case tileService
     case imageOverlay
     case line
     case circle

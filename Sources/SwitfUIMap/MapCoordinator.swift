@@ -30,6 +30,8 @@ final public class MapCoordinator: ObservableObject {
     
     @Published public var visibleRegion: MKCoordinateRegion = .init()
     
+    @Published public var lock: MapLock = .none
+    
     weak var mapView: MapView?
 }
  
@@ -37,6 +39,18 @@ public extension MapCoordinator {
     
     func setCenterCoordinate(coordinate: CLLocationCoordinate2D, zoomLevel: Int, animated: Bool = true) {
         mapView?.setCenterCoordinate(coordinate: coordinate, zoomLevel: zoomLevel, animated: animated)
+    }
+    
+    func lockCurrentRegion(zoomRange: Int = 3) {
+        var region = visibleRegion
+        if let mapView = mapView {
+            region = mapView.region
+        }
+        var minZoom = min(Int(zoomLevel) + (zoomRange / 2), 20)
+        var maxZoom = max(1, Int(zoomLevel) - (zoomRange / 2))
+        if minZoom == 20 { maxZoom = minZoom - zoomRange }
+        if maxZoom == 1 { minZoom = maxZoom + zoomRange }
+        lock = .init(region: region, minLevel: minZoom, maxLevel: maxZoom)
     }
     
 }

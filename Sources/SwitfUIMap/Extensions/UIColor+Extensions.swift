@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  UIColor+Extensions.swift
 //  
 //
 //  Created by Rodrigo Galvez on 06/05/23.

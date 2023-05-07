@@ -9,45 +9,8 @@ import SwiftUI
 import MapKit
 import Combine
 
-public enum AnnotationAnchor {
-    case topLeft
-    case top
-    case topRight
-    case left
-    case center
-    case right
-    case bottomLeft
-    case bottom
-    case bottomRight
-}
-
-extension AnnotationAnchor {
-    func getAnchorPoint(from size: CGSize) -> CGPoint {
-        switch self {
-        case .topLeft:
-            return .init(x: size.width * 0.5, y: size.height * 0.5)
-        case .top:
-            return .init(x: 0, y: size.height * 0.5)
-        case .topRight:
-            return .init(x: -(size.width * 0.5), y: size.height * 0.5)
-        case .left:
-            return .init(x: size.width * 0.5, y: 0)
-        case .center:
-            return .init(x: 0, y: 0)
-        case .right:
-            return .init(x: -(size.width * 0.5), y: 0)
-        case .bottomLeft:
-            return .init(x: size.width * 0.5, y: -(size.height * 0.5))
-        case .bottom:
-            return .init(x: 0, y: -(size.height * 0.5))
-        case .bottomRight:
-            return .init(x: -(size.width * 0.5), y: -(size.height * 0.5))
-        }
-    }
-}
-
 public class AnnotationCoordinator : ObservableObject {
-    public init(isSelected: Bool = false, frame: CGRect = .init(x: 0, y: 0, width: 100, height: 100), anchorPoint: AnnotationAnchor = .center) {
+    public init(isSelected: Bool = false, frame: CGRect = .init(x: 0, y: 0, width: 100, height: 100), anchorPoint: MapAnchor = .center) {
         self.frame = frame
         self.isSelected = isSelected
         self.anchorPoint = anchorPoint
@@ -55,7 +18,7 @@ public class AnnotationCoordinator : ObservableObject {
 
     @Published public var frame: CGRect
     @Published public var isSelected: Bool
-    @Published public var anchorPoint: AnnotationAnchor
+    @Published public var anchorPoint: MapAnchor
 }
 
 public extension AnnotationCoordinator {
@@ -130,7 +93,7 @@ public class MapAnnotationView : MKAnnotationView {
     func change(frame rect: CGRect) {
         frame = rect
         guard let annView = annView else { return }
-        centerOffset = annView.annCoordinator.anchorPoint.getAnchorPoint(from: rect.size)
+        centerOffset = annView.annCoordinator.anchorPoint.getAnnotationPoint(from: rect.size)
     }
     
 }

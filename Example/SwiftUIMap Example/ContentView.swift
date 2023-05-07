@@ -12,6 +12,8 @@ import SwitfUIMap
 struct ContentView: View {
     
     @StateObject var mapCoordinator: MapCoordinator = .init()
+    
+    @State var locked: Bool = false
 
     var body: some View {
         VStack {
@@ -22,7 +24,10 @@ struct ContentView: View {
                 Button("Add Overlay") {
                     if let image = UIImage(named: "usaMap") {
                         mapCoordinator.overlays.append(
-                            MapImageOverlay(location: .init(coordinates: mapCoordinator.tapLocation.coordinates), image: image)
+                            MapImageOverlay(
+                                location: .init(coordinates: mapCoordinator.tapLocation.coordinates),
+                                image: image
+                            )
                         )
                     }
                 }
@@ -42,12 +47,30 @@ struct ContentView: View {
                 }
             }
             HStack {
+                Button(locked ? "UnLock Region" : "Lock Region") {
+                    if locked {
+                        mapCoordinator.lock = .none
+                    }else{
+                        mapCoordinator.lockCurrentRegion()
+                    }
+                    locked.toggle()
+                }
+                Button("Show OpenStreet tiles") {
+                    mapCoordinator.overlays = []
+                    mapCoordinator.overlays.append(
+                        MapTileOverlay(service: .openStreet)
+                    )
+                }
+            }
+            HStack {
                 Text("Map type")
                 Picker("Map type", selection: $mapCoordinator.mapType) {
                     Text("Standard")
                         .tag(MKMapType.standard)
                     Text("Satellite")
                         .tag(MKMapType.satellite)
+                    Text("Hybrid")
+                        .tag(MKMapType.hybridFlyover)
                 }
                 .pickerStyle(.segmented)
             }
@@ -69,6 +92,9 @@ struct ContentView: View {
             Text("center coords : \(mapCoordinator.visibleRegion.center.latitude) - \(mapCoordinator.visibleRegion.center.longitude)")
             ZStack {
                 SwitfUIMap(coordinator: mapCoordinator)
+                    .onAppear{
+                        mapCoordinator.zoomLevel = 16
+                    }
             }
             .onChange(of: mapCoordinator.tapLocation) { newValue in
                 mapCoordinator.locations.append(
