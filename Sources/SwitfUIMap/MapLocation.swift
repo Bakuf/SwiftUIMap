@@ -18,13 +18,14 @@ public struct MapLocation : Hashable {
         hasher.combine(identifier)
     }
     
-    public init(identifier: String = UUID().uuidString, name : String? = nil, placeMark: MKPlacemark? = nil, coordinates: CLLocationCoordinate2D, accuracy: CLAccuracyAuthorization = .fullAccuracy, radius: Double? = nil, view: (any SwiftUIMapAnnotationView)? = nil, boundingMapRect: MKMapRect? = nil) {
+    public init(identifier: String = UUID().uuidString, name : String? = nil, placeMark: MKPlacemark? = nil, coordinates: CLLocationCoordinate2D, accuracy: CLAccuracyAuthorization = .fullAccuracy, radius: Double? = nil, boundingMapRect: MKMapRect? = nil, clusterId: String? = nil , view: (any SwiftUIMapAnnotationView)? = nil) {
         self.identifier = identifier
         self.name = name
         self.placeMark = placeMark
         self.coordinates = coordinates
         self.accuracy = accuracy
         self.radius = radius
+        self.clusterId = clusterId
         self.view = view
         self.boundingMapRect = boundingMapRect
     }
@@ -43,6 +44,8 @@ public struct MapLocation : Hashable {
     public var radius : Double?
     ///Used for overlays
     public var boundingMapRect: MKMapRect?
+    ///Used for clustering
+    public var clusterId: String?
     
     public var view: (any SwiftUIMapAnnotationView)?
     
@@ -91,8 +94,9 @@ public struct MapLocation : Hashable {
         mapItem.openInMaps(launchOptions: options)
     }
     
-    public func with(_ view: any SwiftUIMapAnnotationView) -> MapLocation {
+    public func with(clusterId: String? = nil, view: any SwiftUIMapAnnotationView) -> MapLocation {
         var newSelf = self
+        newSelf.clusterId = clusterId
         newSelf.view = view
         return newSelf
     }
@@ -101,6 +105,6 @@ public struct MapLocation : Hashable {
 
 extension MapLocation {
     public static var none : MapLocation {
-        .init(coordinates: .init(latitude: -1222.0, longitude: -1222.0))
+        .init(identifier: "none", coordinates: .init(latitude: -1222.0, longitude: -1222.0))
     }
 }

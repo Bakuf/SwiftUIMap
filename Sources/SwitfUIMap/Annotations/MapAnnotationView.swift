@@ -9,46 +9,9 @@ import SwiftUI
 import MapKit
 import Combine
 
-public class AnnotationCoordinator : ObservableObject {
-    public init(isSelected: Bool = false, frame: CGRect = .init(x: 0, y: 0, width: 100, height: 100), anchorPoint: MapAnchor = .center) {
-        self.frame = frame
-        self.isSelected = isSelected
-        self.anchorPoint = anchorPoint
-    }
-
-    @Published public var frame: CGRect
-    @Published public var isSelected: Bool
-    @Published public var anchorPoint: MapAnchor
-}
-
-public extension AnnotationCoordinator {
-    func animateChange(of frame: CGRect, duration: CGFloat = 1.0, delay: CGFloat = 0.0, type: UIView.AnimationOptions) {
-        UIView.animate(withDuration: duration, delay: delay, options: type) { [weak self] in
-            self?.frame = frame
-        }
-    }
-}
- 
-public protocol SwiftUIMapAnnotationView : View {
-    var hostingControllerView : UIView { get }
-    var annCoordinator: AnnotationCoordinator { get }
-}
-
-extension SwiftUIMapAnnotationView {
-    public var hostingControllerView: UIView { convert(view: self) }
-    public func convert<Content: View>(view: Content) -> UIView {
-        let viewCtrl = UIHostingController(rootView: view)
-        return viewCtrl.view
-    }
-}
-
 public class MapAnnotationView : MKAnnotationView {
     
     private var lastIdentifier : String = ""
-    private var tapRecognizer : UITapGestureRecognizer?
-    
-    private var longPressTimer : Timer?
-    private var currentCenter = CGPoint.zero
     private var cancellables = Set<AnyCancellable>()
     
     private var mapAnn : MapAnnotation? { annotation as? MapAnnotation }
@@ -86,6 +49,8 @@ public class MapAnnotationView : MKAnnotationView {
                     .sink { [weak self] rect in
                         self?.change(frame: rect)
                     }.store(in: &cancellables)
+                
+                clusteringIdentifier = mapAnn.locationInfo.clusterId
             }
         }
     }

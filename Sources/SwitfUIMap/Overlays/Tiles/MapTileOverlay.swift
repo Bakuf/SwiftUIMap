@@ -22,9 +22,6 @@ public class MapTileOverlay : MKTileOverlay, MapOverlay {
         
         self.isGeometryFlipped = isGeometryFlipped
         self.canReplaceMapContent = canReplaceMapContent
-        
-//        tileDownloader = TileDownloader()
-//        tileDownloader?.download(serviceUrl: "https://swissgameguides.media/games/forza_horizon_5/media/tiles/T_1/%d/%d/%d.jpg", until: 6)
     }
 
     public override func url(forTilePath path: MKTileOverlayPath) -> URL {

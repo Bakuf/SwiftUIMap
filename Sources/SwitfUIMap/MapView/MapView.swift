@@ -8,12 +8,16 @@
 import MapKit
 import Combine
 
+public typealias ClusterBuilder = ()->(any SwiftUIMapAnnotationView)
+
 public class MapView: MKMapView {
     
     weak var coordinator: MapCoordinator?
     private var cancellables = Set<AnyCancellable>()
     private var singleTapRecognizer : UITapGestureRecognizer?
     var ignoreSetZoomLevel = false
+    
+    var clusterRegistry : [String: ClusterBuilder] = [:]
     
     init(coordinator: MapCoordinator) {
         super.init(frame: .zero)
@@ -78,6 +82,20 @@ public class MapView: MKMapView {
 }
 
 extension MapView {
+    
+    func reportChangeIn(zoomLevel: Int) {
+        ignoreSetZoomLevel = true
+        coordinator?.zoomLevel = zoomLevel
+    }
+    
+    func reportChangeIn(region: MKCoordinateRegion) {
+        reportChangeIn(zoomLevel: calculateZoomLevel())
+        coordinator?.visibleRegion = region
+    }
+    
+}
+
+extension MapView {
     func subscribe(to coordinator: MapCoordinator) {
         coordinator.$mapType
             .assign(to: \.mapType, on: self)
@@ -92,16 +110,23 @@ extension MapView {
             .assign(to: \.reportTapLocation, on: self)
             .store(in: &cancellables)
         
-        coordinator.$locations.sink { [weak self] locations in
+        coordinator.$locations
+            .sink { [weak self] locations in
             self?.update(locations: locations)
         }.store(in: &cancellables)
         
-        coordinator.$tileColor.assign(to: \.tileColor, on: self).store(in: &cancellables)
-        coordinator.$overlays.sink { [weak self] overlays in
+        coordinator.$tileColor
+            .assign(to: \.tileColor, on: self)
+            .store(in: &cancellables)
+        
+        coordinator.$overlays
+            .sink { [weak self] overlays in
             self?.update(overlays: overlays)
         }.store(in: &cancellables)
         
-        coordinator.$lock.sink { [weak self] lock in
+        coordinator.$lock
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] lock in
             self?.mapLock = lock
         }.store(in: &cancellables)
     }

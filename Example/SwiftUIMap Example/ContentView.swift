@@ -14,91 +14,138 @@ struct ContentView: View {
     @StateObject var mapCoordinator: MapCoordinator = .init()
     
     @State var locked: Bool = false
+    @State var text = ""
+    
+    let applePark : CLLocationCoordinate2D = .init(latitude: 37.334600, longitude: -122.009200)
 
     var body: some View {
         VStack {
+            Text("SwiftUIMap")
+                .font(.largeTitle)
+                .bold()
+            Text(text)
+                .font(.body)
+                .bold()
             HStack {
-                Button("Clear Annotations") {
-                    mapCoordinator.locations = []
-                }
-                Button("Add Overlay") {
-                    if let image = UIImage(named: "usaMap") {
-                        mapCoordinator.overlays.append(
-                            MapImageOverlay(
-                                location: .init(coordinates: mapCoordinator.tapLocation.coordinates),
-                                image: image
-                            )
-                        )
-                    }
-                }
-                Button("Clear Overlay") {
-                    mapCoordinator.overlays = []
-                }
-                Button("Draw Lines") {
-                    if mapCoordinator.locations.count > 1 {
-                        mapCoordinator.overlays = []
-                        let lineCoords = mapCoordinator.locations.map { loc in
-                            loc.coordinates
-                        }
-                        mapCoordinator.overlays.append(
-                            MapLineOverlay(coordinates: lineCoords)
-                        )
-                    }
-                }
+                Text("zoom: \(mapCoordinator.zoomLevel)")
+                Slider(value: .convert(from: $mapCoordinator.zoomLevel) , in: 0...20, step: 1)
             }
-            HStack {
-                Button(locked ? "UnLock Region" : "Lock Region") {
-                    if locked {
-                        mapCoordinator.lock = .none
-                    }else{
-                        mapCoordinator.lockCurrentRegion()
-                    }
-                    locked.toggle()
-                }
-                Button("Show OpenStreet tiles") {
-                    mapCoordinator.overlays = []
-                    mapCoordinator.overlays.append(
-                        MapTileOverlay(service: .openStreet)
-                    )
-                }
+            if mapCoordinator.tapLocation != .none {
+                Text("tap coords : \(mapCoordinator.tapLocation.coordinates.latitude) - \(mapCoordinator.tapLocation.coordinates.longitude)")
             }
-            HStack {
-                Text("Map type")
-                Picker("Map type", selection: $mapCoordinator.mapType) {
-                    Text("Standard")
-                        .tag(MKMapType.standard)
-                    Text("Satellite")
-                        .tag(MKMapType.satellite)
-                    Text("Hybrid")
-                        .tag(MKMapType.hybridFlyover)
-                }
-                .pickerStyle(.segmented)
-            }
-            HStack {
-                Text("Color Tile")
-                Picker("Color Tile", selection: $mapCoordinator.tileColor) {
-                    Text("clear")
-                        .tag(UIColor.clear)
-                    Text("blue")
-                        .tag(UIColor.blue)
-                }
-                .pickerStyle(.segmented)
-            }
-            HStack {
-                Text("zoom: \(Int(mapCoordinator.zoomLevel))")
-                Slider(value: $mapCoordinator.zoomLevel, in: 0...20)
-            }
-            Text("tap coords : \(mapCoordinator.tapLocation.coordinates.latitude) - \(mapCoordinator.tapLocation.coordinates.longitude)")
-            Text("center coords : \(mapCoordinator.visibleRegion.center.latitude) - \(mapCoordinator.visibleRegion.center.longitude)")
             ZStack {
                 SwitfUIMap(coordinator: mapCoordinator)
                     .onAppear{
-                        mapCoordinator.zoomLevel = 16
+                        mapCoordinator.registerBuilder(for: "clusteredAnn", builder: { TestClusterView() })
+                        mapCoordinator.setCenterCoordinate(coordinate: applePark, zoomLevel: 16, animated: true)
                     }
+                VStack {
+                    Text("map center \n \(mapCoordinator.visibleRegion.center.latitude) - \(mapCoordinator.visibleRegion.center.longitude)")
+                        .multilineTextAlignment(.center)
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerSize: .init(width: 30, height: 30)))
+                        .padding()
+                    Spacer()
+                    HStack(spacing: 10) {
+                        Image(systemName: mapCoordinator.mapType == .standard ? "map.fill" : "globe.americas.fill")
+                            .onTapGesture {
+                                if mapCoordinator.mapType == .standard {
+                                    mapCoordinator.mapType = .hybridFlyover
+                                    text = "Set Hybrid Flyover map type"
+                                } else {
+                                    mapCoordinator.mapType = .standard
+                                    text = "Set Standard map type"
+                                }
+                            }
+                            .padding([.leading, .top, .bottom])
+                        Image(systemName: "apple.logo")
+                            .onTapGesture {
+                                mapCoordinator.setCenterCoordinate(coordinate: applePark, zoomLevel: 16, animated: true)
+                                text = "Centered on Apple Park"
+                            }
+                        Image(systemName: locked ? "lock.fill" : "lock.open.fill")
+                            .onTapGesture {
+                                if locked {
+                                    mapCoordinator.lock = .none
+                                    text = "Region unlocked"
+                                }else{
+                                    mapCoordinator.lock(region: mapCoordinator.visibleRegion, zoomLevel: mapCoordinator.zoomLevel)
+                                    text = "Region locked"
+                                }
+                                locked.toggle()
+                            }
+                        Image(systemName: mapCoordinator.tileColor == .clear ? "paintbrush" : "paintbrush.fill")
+                            .onTapGesture {
+                                if mapCoordinator.tileColor == .clear {
+                                    mapCoordinator.tileColor = .blue
+                                    text = "Set Color Tileset"
+                                } else {
+                                    mapCoordinator.tileColor = .clear
+                                    text = "Back to Apple Tileset"
+                                }
+                            }
+                        Image(systemName: "globe")
+                            .onTapGesture {
+                                if let tileIndex = mapCoordinator.overlays.firstIndex(where: { $0.id == "openStreet"}) {
+                                    mapCoordinator.overlays.remove(at: tileIndex)
+                                    text = "Back to Apple Tileset"
+                                }else{
+                                    mapCoordinator.overlays.append(
+                                        MapTileOverlay(id: "openStreet",service: .openStreet)
+                                    )
+                                    text = "Set Open Street Tileset"
+                                }
+                                //mapCoordinator.overlays = []
+                            }
+                        Image(systemName: "photo.fill")
+                            .onTapGesture {
+                                if let image = UIImage(named: "usaMap") {
+                                    mapCoordinator.overlays.append(
+                                        MapImageOverlay(
+                                            location: .init(coordinates: mapCoordinator.tapLocation.coordinates),
+                                            image: image
+                                        )
+                                    )
+                                }
+                            }
+                        Image(systemName: "mappin.slash")
+                            .onTapGesture {
+                                mapCoordinator.locations = []
+                                text = "Removed all locations"
+                            }
+                        Image(systemName: "circle.slash")
+                            .onTapGesture {
+                                mapCoordinator.overlays = []
+                                text = "Removed all overlays"
+                            }
+                        Image(systemName: "line.diagonal")
+                            .onTapGesture {
+                                if mapCoordinator.locations.count > 1 {
+                                    mapCoordinator.overlays = []
+                                    let lineCoords = mapCoordinator.locations.map { loc in
+                                        loc.coordinates
+                                    }
+                                    mapCoordinator.overlays.append(
+                                        MapLineOverlay(coordinates: lineCoords)
+                                    )
+                                    text = "Drawed a line between annotations"
+                                } else {
+                                    text = "Add at least 2 locations to draw a line between them"
+                                }
+                            }
+                            .padding(.trailing)
+                    }
+                    .background(.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerSize: .init(width: 30, height: 30)))
+                    .frame(width: 50)
+                    .padding()
+                }
             }
             .onChange(of: mapCoordinator.tapLocation) { newValue in
                 mapCoordinator.locations.append(
-                    newValue.with(TestAnnotationView())
+                    MapLocation(coordinates: applePark, view: CoolAnnotationView())
+                    newValue.with(clusterId: "clusteredAnn",view: TestAnnotationView())
                 )
             }
         }
@@ -108,12 +155,36 @@ struct ContentView: View {
 
 struct TestAnnotationView : SwiftUIMapAnnotationView {
     
-    @ObservedObject var annCoordinator: AnnotationCoordinator = .init()
+    @ObservedObject var annCoordinator: AnnotationCoordinator = .init(frame: .init(x: 0, y: 0, width: 100, height: 100))
     
     var body: some View {
         ZStack{
             Circle()
                 .fill(annCoordinator.isSelected ? .green : .blue)
+                .opacity(0.5)
+                .onTapGesture {
+                    print("circle ann was tapped!")
+                    annCoordinator.isSelected.toggle()
+                }
+        }
+        .onChange(of: annCoordinator.isSelected) { newValue in
+            var frame = CGRect(x: 0, y: 0, width: 100, height: 100)
+            if newValue {
+                frame = CGRect(x: 0, y: 0, width: 300, height: 300)
+            }
+            annCoordinator.frame = frame
+        }
+    }
+}
+
+struct TestClusterView : SwiftUIMapAnnotationView {
+    
+    @ObservedObject var annCoordinator: AnnotationCoordinator = .init()
+    
+    var body: some View {
+        ZStack{
+            Rectangle()
+                .fill(annCoordinator.isSelected ? .orange : .red)
                 .opacity(0.5)
                 .onTapGesture {
                     print("circle ann was tapped!")
