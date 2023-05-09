@@ -11,7 +11,7 @@ Features :
 
 ## Quick Start
 
-Just import MapKit and SwitfUIMap to your swiftUI view and create both a MapCoordinator and a SwitfUIMap view inside
+Just import MapKit and SwitfUIMap to your swiftUI view and create both a `MapCoordinator` and a `SwitfUIMap` view inside
 
 ```swift
 @StateObject var mapCoordinator = MapCoordinator()
@@ -25,7 +25,7 @@ var body: some View {
 }
 ```
 
-To add annotations you need to create a MapLocation with the CLLocationCoordinate2D that you want and add it to the array of locations inside the MapCoordinator
+To add annotations you need to create a `MapLocation` with the CLLocationCoordinate2D that you want and add it to the array of locations inside the `MapCoordinator`
 
 ```swift
 mapCoordinator.locations.append(
@@ -35,7 +35,7 @@ mapCoordinator.locations.append(
 
 Any annotation that is added or deleted to the array will be automatically managed by the map view, if you need to modify or delete one, you can search them by setting the id property inside MapLocation.
 
-The view paramater is optional, but needed for a custom annotation view. To use it your swiftUI view needs to conform to the SwiftUIMapAnnotationView protocol that only requires one property of type AnnotationCoordinator to be added.
+The view paramater is optional, but needed for a custom annotation view. To use it your swiftUI view needs to conform to the `SwiftUIMapAnnotationView` protocol that only requires one property of type `AnnotationCoordinator` to be added.
 
 ```swift
 struct CoolAnnotationView : SwiftUIMapAnnotationView {
