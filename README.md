@@ -33,7 +33,7 @@ mapCoordinator.locations.append(
 )
 ```
 
-Any annotation that is added or deleted to the array will be automatically managed by the map view, if you need to modify or delete one, you can search them by setting the id property inside MapLocation.
+Any annotation that is added or deleted to the array will be automatically managed by the map view, if you need to modify or delete one, you can search them by setting the id property inside `MapLocation`.
 
 The view paramater is optional, but needed for a custom annotation view. To use it your swiftUI view needs to conform to the `SwiftUIMapAnnotationView` protocol that only requires one property of type `AnnotationCoordinator` to be added.
 
