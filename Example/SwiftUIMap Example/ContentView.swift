@@ -144,7 +144,6 @@ struct ContentView: View {
             }
             .onChange(of: mapCoordinator.tapLocation) { newValue in
                 mapCoordinator.locations.append(
-                    MapLocation(coordinates: applePark, view: CoolAnnotationView())
                     newValue.with(clusterId: "clusteredAnn",view: TestAnnotationView())
                 )
             }
